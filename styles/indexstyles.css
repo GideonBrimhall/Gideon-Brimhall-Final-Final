@@ -1,0 +1,108 @@
+.body{
+    left:40px;
+    right:40px;
+    color: white;
+    
+}
+
+
+.common{
+     background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+    border: 5px solid darkgreen;
+    position:absolute;
+   
+    color: white;
+      -webkit-text-stroke: .5px black;
+}
+
+.header{
+
+top: 5px;
+left: 25px;
+Right:25px;
+height: 200px;
+border: 10px gray;
+font-size: xx-large;
+font-weight: bold;
+}
+
+
+.center{
+top: 45px;
+left:25px;
+right:25px;
+height:60%;
+
+font-size: x-large;
+}
+
+.centertext{
+    margin: 50px;
+    font-family: Georgia, 'Times New Roman', Times, serif;
+    line-height: 2;
+}
+
+.houseimage{
+    float: right;
+    width: 50%;
+    height:97%;
+    margin: 5px;
+    margin-bottom: 10p;
+}
+
+.footer{
+font-weight: bold;
+text-align: center;
+text-decoration: underline;
+font-size: x-large;
+
+
+}
+
+.bottomleft{
+    bottom:5px;
+    height:310px;
+    left:25px;
+    width:32.5%
+    
+
+}
+
+.bottomcenter{
+    bottom:5px;
+    height:310px;
+    right:35%;
+    left:35%;
+    width:31%
+
+}
+
+.bottomright{
+    bottom:5px;
+    height:310px;
+    right:25px;
+    width:31%
+
+}
+
+
+.aboutus{
+
+  color: White;
+  
+
+Font-size:x-large;
+
+}
+
+
+.end{
+
+top: 950px;
+left: 25px;
+Right:25px;
+height: 60px;
+border: 10px gray;
+font-size: xx-large;
+font-weight: bold;
+}

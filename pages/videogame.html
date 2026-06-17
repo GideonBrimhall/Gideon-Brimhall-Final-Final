@@ -1,0 +1,762 @@
+bash
+cat > /mnt/user-data/outputs/tag_game.html << 'HTMLEOF'
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tag Game</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: #0d0d1a; color: #ccc; font-family: system-ui, sans-serif; display: flex; flex-direction: column; align-items: center; min-height: 100vh; padding: 12px 16px; }
+h1 { font-size: 22px; font-weight: 500; color: #eee; margin-bottom: 6px; letter-spacing: 1px; }
+canvas { display: block; background: transparent; cursor: none; max-width: 100%; }
+#scoreBar { width: 100%; max-width: 680px; display: flex; justify-content: center; gap: 32px; padding: 4px 0 2px; font-size: 15px; font-weight: 500; }
+.scorePip { display: inline-block; width: 16px; height: 16px; border-radius: 50%; margin: 0 2px; vertical-align: middle; border: 2px solid #444; }
+.scorePip.filled { border-color: transparent; }
+#ui { width: 100%; max-width: 680px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; padding: 6px 0; }
+.pinfo { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 500; color: #ddd; }
+.dot { width: 18px; height: 18px; border-radius: 50%; flex-shrink: 0; }
+.peffects { font-size: 12px; color: #aaa; }
+#gameStatus { font-size: 14px; font-weight: 500; color: #ccc; text-align: center; }
+#controls { width: 100%; max-width: 680px; display: flex; justify-content: center; gap: 12px; padding: 4px 0; }
+#pauseBtn { background: transparent; border: 1px solid #555; color: #ddd; padding: 6px 22px; border-radius: 6px; font-size: 13px; cursor: pointer; }
+#pauseBtn:hover { background: #222; border-color: #888; }
+#legend { width: 100%; max-width: 680px; display: flex; flex-wrap: wrap; gap: 6px; padding: 4px 0 10px; font-size: 12px; }
+.pill { padding: 3px 10px; border-radius: 4px; font-weight: 500; }
+
+/* Name entry screen */
+#nameScreen { position: fixed; inset: 0; background: #0d0d1a; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 24px; z-index: 100; }
+#nameScreen h2 { font-size: 28px; font-weight: 500; color: #eee; }
+.nameRow { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.nameRow label { font-size: 14px; color: #aaa; }
+.nameRow input { background: #1a1a2e; border: 1px solid #444; color: #eee; padding: 10px 18px; border-radius: 8px; font-size: 16px; text-align: center; width: 220px; outline: none; }
+.nameRow input:focus { border-color: #7a7aee; }
+.nameLabel { font-size: 13px; font-weight: 500; margin-top: 2px; }
+#startBtn { background: #3a3a8a; border: none; color: #eee; padding: 12px 40px; border-radius: 8px; font-size: 16px; cursor: pointer; margin-top: 8px; }
+#startBtn:hover { background: #5a5aaa; }
+</style>
+</head>
+<body>
+
+<!-- Name entry overlay -->
+<div id="nameScreen">
+  <h2>⚡ Tag Game</h2>
+  <div style="display:flex;gap:40px;flex-wrap:wrap;justify-content:center;">
+    <div class="nameRow">
+      <div class="dot" style="background:#e74c3c;width:28px;height:28px;margin:0 auto;"></div>
+      <label>Player 1 (WASD)</label>
+      <input id="name1" type="text" maxlength="12" placeholder="Player 1" value="Player 1" />
+    </div>
+    <div class="nameRow">
+      <div class="dot" style="background:#3498db;width:28px;height:28px;margin:0 auto;"></div>
+      <label>Player 2 (Arrow Keys)</label>
+      <input id="name2" type="text" maxlength="12" placeholder="Player 2" value="Player 2" />
+    </div>
+  </div>
+  <button id="startBtn">Let's Play!</button>
+</div>
+
+<h1>⚡ Tag Game</h1>
+<div id="scoreBar">
+  <div id="p1pips" style="color:#e74c3c;"></div>
+  <div id="p2pips" style="color:#3498db;"></div>
+</div>
+<canvas id="gameCanvas" width="680" height="680"></canvas>
+<div id="ui">
+  <div class="pinfo">
+    <div class="dot" style="background:#e74c3c;"></div>
+    <span id="p1label">P1</span>
+    <span class="peffects" id="p1power"></span>
+  </div>
+  <div id="gameStatus"></div>
+  <div class="pinfo" style="justify-content:flex-end;">
+    <span class="peffects" id="p2power"></span>
+    <span id="p2label">P2</span>
+    <div class="dot" style="background:#3498db;"></div>
+  </div>
+</div>
+<div id="controls">
+  <button id="pauseBtn">⏸ Pause</button>
+</div>
+<div id="legend">
+  <span class="pill" style="background:#2ecc71;color:#174;">⚡ Speed up</span>
+  <span class="pill" style="background:#f39c12;color:#633;">💪 Grow big</span>
+  <span class="pill" style="background:#9b59b6;color:#ddd;">👻 Phase thru walls</span>
+  <span class="pill" style="background:#e74c3c;color:#fff;">🐌 Slow down</span>
+  <span class="pill" style="background:#1a1a6e;color:#aaf;">🔬 Shrink</span>
+  <span class="pill" style="background:#444;color:#ccc;">🔄 Reverse</span>
+  <span class="pill" style="background:radial-gradient(circle,#fff8aa,#ffcc00);color:#333;">🌀 Chaos!</span>
+  <span class="pill" style="background:#223;color:#88f;">⬛ Portals: top/bottom/left/right</span>
+</div>
+
+<script>
+const canvas = document.getElementById('gameCanvas');
+const ctx = canvas.getContext('2d');
+const W = canvas.width, H = canvas.height;
+const CX = W/2, CY = H/2, R = W/2 - 20;
+
+let p1name = 'Player 1', p2name = 'Player 2';
+
+document.getElementById('startBtn').addEventListener('click', () => {
+  p1name = document.getElementById('name1').value.trim() || 'Player 1';
+  p2name = document.getElementById('name2').value.trim() || 'Player 2';
+  document.getElementById('nameScreen').style.display = 'none';
+  document.getElementById('p1label').textContent = p1name + ' (WASD)';
+  document.getElementById('p2label').textContent = p2name + ' (Arrows)';
+  resetGame();
+  requestAnimationFrame(loop);
+});
+document.getElementById('name1').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('startBtn').click(); });
+document.getElementById('name2').addEventListener('keydown', e => { if(e.key==='Enter') document.getElementById('startBtn').click(); });
+
+// States: 'idle'|'countdown'|'playing'|'exploding'|'roundover'|'gameover'|'paused'
+let gameState = 'idle';
+let prevState = 'playing';
+let countdownVal = 3, countdownTimer = 0;
+const WIN_SCORE = 3;
+
+const keys = {};
+document.addEventListener('keydown', e => {
+  keys[e.key] = true;
+  if(gameState !== 'idle' && (e.key === ' ' || e.key === 'Escape')) togglePause();
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d'].includes(e.key)) e.preventDefault();
+});
+document.addEventListener('keyup', e => { keys[e.key] = false; });
+document.getElementById('pauseBtn').addEventListener('click', togglePause);
+
+function togglePause(){
+  if(gameState === 'paused'){
+    gameState = prevState; lastTime = null;
+    document.getElementById('pauseBtn').textContent = '⏸ Pause';
+    requestAnimationFrame(loop);
+  } else if(gameState === 'playing' || gameState === 'countdown'){
+    prevState = gameState; gameState = 'paused';
+    document.getElementById('pauseBtn').textContent = '▶ Resume';
+  }
+}
+
+// ---- PORTALS ----
+// 4 portals: top, bottom, left, right — each is a gap in the wall that warps to opposite
+const PORTAL_SIZE = 32; // half-arc width in pixels at rim
+const PORTALS = [
+  { angle: -Math.PI/2, label:'T' }, // top
+  { angle:  Math.PI/2, label:'B' }, // bottom
+  { angle:  Math.PI,   label:'L' }, // left
+  { angle:  0,         label:'R' }, // right
+];
+const PORTAL_HALF_ARC = Math.asin(PORTAL_SIZE / R); // angular half-width
+
+// ---- OBSTACLES (dynamic, reshuffled each round) ----
+let obstacles = [];
+function generateObstacles(){
+  // Keep obstacles away from portals and center
+  const tries = 200;
+  const configs = [
+    {r:26}, {r:22}, {r:22}, {r:18}, {r:16}, {r:16}
+  ];
+  obstacles = [];
+  for(const cfg of configs){
+    for(let t=0;t<tries;t++){
+      const ang = Math.random()*Math.PI*2;
+      const d   = 55 + Math.random()*(R - 55 - cfg.r - 20);
+      const ox = CX + Math.cos(ang)*d;
+      const oy = CY + Math.sin(ang)*d;
+      // Not too close to center
+      if(Math.hypot(ox-CX,oy-CY) < 60) continue;
+      // Not blocking portals
+      const nearPortal = PORTALS.some(po => {
+        const px = CX+Math.cos(po.angle)*(R-8);
+        const py = CY+Math.sin(po.angle)*(R-8);
+        return Math.hypot(ox-px,oy-py) < cfg.r+50;
+      });
+      if(nearPortal) continue;
+      // Not overlapping other obstacles
+      const overlap = obstacles.some(o=>Math.hypot(ox-o.x,oy-o.y)<cfg.r+o.r+12);
+      if(overlap) continue;
+      obstacles.push({x:ox,y:oy,r:cfg.r, vx:0, vy:0});
+      break;
+    }
+  }
+}
+
+// ---- POWERUP TYPES ----
+const POWERUP_TYPES = [
+  {id:'speed',   label:'⚡ Speed',   color:'#2ecc71', duration:5000},
+  {id:'big',     label:'💪 Big',     color:'#f39c12', duration:5000},
+  {id:'phase',   label:'👻 Phase',   color:'#9b59b6', duration:4000},
+  {id:'slow',    label:'🐌 Slow',    color:'#e74c3c', duration:4000},
+  {id:'shrink',  label:'🔬 Shrink',  color:'#1a1a6e', duration:5000},
+  {id:'reverse', label:'🔄 Reverse', color:'#555',    duration:3000},
+];
+
+function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+function randInArena(){
+  const ang = Math.random()*Math.PI*2, d = Math.random()*(R-70)+40;
+  return {x:CX+Math.cos(ang)*d, y:CY+Math.sin(ang)*d};
+}
+
+// ---- CHAOS ORBS ----
+// The special "chaos" powerup: glows in center-ish, rare
+let chaosOrb = null;
+let chaosOrbTimer = 0; // countdown to next spawn
+let chaosActive = false; // chaos animation running
+let chaosDuration = 0;
+const CHAOS_SPAWN_INTERVAL_MIN = 18, CHAOS_SPAWN_INTERVAL_MAX = 30;
+
+function scheduleChaosOrb(){
+  chaosOrbTimer = CHAOS_SPAWN_INTERVAL_MIN + Math.random()*(CHAOS_SPAWN_INTERVAL_MAX-CHAOS_SPAWN_INTERVAL_MIN);
+  chaosOrb = null;
+}
+
+function spawnChaosOrb(){
+  // Place near center
+  const ang = Math.random()*Math.PI*2;
+  const d = Math.random()*50;
+  chaosOrb = { x: CX+Math.cos(ang)*d, y: CY+Math.sin(ang)*d, r: 18, pulse: 0 };
+}
+
+function triggerChaos(){
+  chaosOrb = null; chaosActive = true; chaosDuration = 1.4;
+  // Blast players
+  for(const p of [p1,p2]){
+    const ang = Math.random()*Math.PI*2;
+    p.vx = Math.cos(ang)*14; p.vy = Math.sin(ang)*14;
+  }
+  // Blast obstacles
+  for(const o of obstacles){
+    const ang = Math.random()*Math.PI*2;
+    o.vx = Math.cos(ang)*(4+Math.random()*8);
+    o.vy = Math.sin(ang)*(4+Math.random()*8);
+  }
+  // Reschedule
+  scheduleChaosOrb();
+}
+
+function updateChaosObstacles(){
+  for(const o of obstacles){
+    o.x += o.vx; o.y += o.vy;
+    o.vx *= 0.94; o.vy *= 0.94;
+    // Bounce off arena wall
+    const d = Math.hypot(o.x-CX,o.y-CY);
+    if(d + o.r > R){
+      const ang = Math.atan2(o.y-CY, o.x-CX);
+      o.x = CX+Math.cos(ang)*(R-o.r-1);
+      o.y = CY+Math.sin(ang)*(R-o.r-1);
+      const dot = o.vx*Math.cos(ang)+o.vy*Math.sin(ang);
+      o.vx -= 2*dot*Math.cos(ang); o.vy -= 2*dot*Math.sin(ang);
+    }
+    // Bounce off other obstacles
+    for(const o2 of obstacles){
+      if(o===o2) continue;
+      const dd = dist(o,o2);
+      if(dd < o.r+o2.r+1){
+        const ang = Math.atan2(o.y-o2.y,o.x-o2.x);
+        const overlap = (o.r+o2.r+1-dd)/2;
+        o.x += Math.cos(ang)*overlap; o.y += Math.sin(ang)*overlap;
+        const dot = (o.vx-o2.vx)*Math.cos(ang)+(o.vy-o2.vy)*Math.sin(ang);
+        if(dot<0){ o.vx -= dot*Math.cos(ang); o.vy -= dot*Math.sin(ang); }
+      }
+    }
+  }
+}
+
+// ---- PLAYERS ----
+let p1, p2;
+function mkPlayer(x,y,color,isIt,controls,name){
+  return {x,y,vx:(Math.random()-0.5)*4,vy:(Math.random()-0.5)*4,
+    color,baseR:22,r:22,speed:3.5,isIt,phasing:false,reversed:false,
+    effects:{},score:0,controls,alive:true,name};
+}
+function initPlayers(){
+  p1 = mkPlayer(CX-120,CY,'#e74c3c',true, {up:'w',down:'s',left:'a',right:'d'}, p1name);
+  p2 = mkPlayer(CX+120,CY,'#3498db',false,{up:'ArrowUp',down:'ArrowDown',left:'ArrowLeft',right:'ArrowRight'}, p2name);
+}
+
+let powerups = [];
+let bombTimer = 10;
+let lastTime = null;
+let tagFlash = 0;
+let bombBounce = 0;
+let spawnTimer = 0;
+let tagCooldown = 0;
+let explosion = null, explodeTimer = 0;
+const EXPLODE_DURATION = 1.8;
+let roundOverTimer = 0;
+const ROUND_OVER_DURATION = 2.2;
+
+// ---- POWERUPS ----
+function spawnPowerup(){
+  if(powerups.length >= 5) return;
+  const t = POWERUP_TYPES[Math.floor(Math.random()*POWERUP_TYPES.length)];
+  let pos, tries=0;
+  do { pos = randInArena(); tries++; }
+  while(tries<30 && obstacles.some(o=>dist(pos,o)<o.r+30));
+  powerups.push({x:pos.x,y:pos.y,type:t,r:14,bobOffset:Math.random()*Math.PI*2});
+}
+
+function clearAllEffects(p){
+  Object.values(p.effects).forEach(e=>clearTimeout(e.timer));
+  p.effects={}; p.r=p.baseR; p.speed=3.5; p.phasing=false; p.reversed=false;
+}
+
+function applyEffect(player, typeId, duration){
+  if(player.effects[typeId]) clearTimeout(player.effects[typeId].timer);
+  if(typeId==='speed')   player.speed=6.5;
+  if(typeId==='big')     player.r=player.baseR*1.8;
+  if(typeId==='phase')   player.phasing=true;
+  if(typeId==='slow')    player.speed=1.4;
+  if(typeId==='shrink')  player.r=player.baseR*0.5;
+  if(typeId==='reverse') player.reversed=true;
+  const timer = setTimeout(()=>{
+    player.r=player.baseR; player.speed=3.5; player.phasing=false; player.reversed=false;
+    delete player.effects[typeId]; updateUI();
+  }, duration);
+  player.effects[typeId]={timer,typeId};
+  updateUI();
+}
+
+function updateUI(){
+  [['p1power',p1],['p2power',p2]].forEach(([id,p])=>{
+    document.getElementById(id).textContent = Object.values(p.effects).map(e=>{
+      const info=POWERUP_TYPES.find(x=>x.id===e.typeId); return info?info.label:'';
+    }).join(' ');
+  });
+  const pipHtml=(score,color)=>{
+    let h='';
+    for(let i=0;i<WIN_SCORE;i++)
+      h+=`<span class="scorePip ${i<score?'filled':''}" style="${i<score?'background:'+color:''};"></span>`;
+    return h;
+  };
+  document.getElementById('p1pips').innerHTML = (p1?p1.name:'P1')+' '+pipHtml(p1?p1.score:0,'#e74c3c');
+  document.getElementById('p2pips').innerHTML = pipHtml(p2?p2.score:0,'#3498db')+' '+(p2?p2.name:'P2');
+}
+
+// ---- PORTALS ----
+function checkPortals(p){
+  for(const portal of PORTALS){
+    const px = CX+Math.cos(portal.angle)*R;
+    const py = CY+Math.sin(portal.angle)*R;
+    if(Math.hypot(p.x-px,p.y-py) < PORTAL_SIZE+p.r*0.5){
+      // Teleport to opposite portal
+      const opp = (portal.angle + Math.PI);
+      const inset = p.r + 30;
+      p.x = CX + Math.cos(opp)*(R - inset);
+      p.y = CY + Math.sin(opp)*(R - inset);
+      // maintain velocity direction roughly inward
+      const sp = Math.hypot(p.vx,p.vy)||3;
+      p.vx = Math.cos(opp)*sp*-1; p.vy = Math.sin(opp)*sp*-1;
+      break;
+    }
+  }
+}
+
+// ---- MOVEMENT ----
+function move(p){
+  const s=p.speed, rev=p.reversed?-1:1;
+  let dx=0,dy=0;
+  if(keys[p.controls.up])    dy-=s*rev;
+  if(keys[p.controls.down])  dy+=s*rev;
+  if(keys[p.controls.left])  dx-=s*rev;
+  if(keys[p.controls.right]) dx+=s*rev;
+  if(dx||dy){const l=Math.hypot(dx,dy);dx=dx/l*s;dy=dy/l*s;}
+  p.vx=p.vx*0.88+dx*0.18; p.vy=p.vy*0.88+dy*0.18;
+  const spN=Math.hypot(p.vx,p.vy);
+  if(spN<1.8){const a=Math.random()*Math.PI*2;p.vx+=Math.cos(a)*0.6;p.vy+=Math.sin(a)*0.6;}
+  if(spN>s*2){p.vx=p.vx/spN*s*2;p.vy=p.vy/spN*s*2;}
+  p.x+=p.vx; p.y+=p.vy;
+
+  // Check portal BEFORE wall bounce
+  const dc=Math.hypot(p.x-CX,p.y-CY);
+  if(dc + p.r > R - 2){
+    // Is player near a portal gap? If so, let them through (portal check handles it)
+    const playerAng = Math.atan2(p.y-CY,p.x-CX);
+    const nearPortal = PORTALS.some(po=>{
+      let diff = playerAng - po.angle;
+      while(diff> Math.PI) diff-=2*Math.PI;
+      while(diff<-Math.PI) diff+=2*Math.PI;
+      return Math.abs(diff) < PORTAL_HALF_ARC*1.5;
+    });
+    if(nearPortal){
+      checkPortals(p);
+    } else {
+      const ang=Math.atan2(p.y-CY,p.x-CX);
+      p.x=CX+Math.cos(ang)*(R-p.r); p.y=CY+Math.sin(ang)*(R-p.r);
+      const dot=p.vx*Math.cos(ang)+p.vy*Math.sin(ang);
+      p.vx-=2*dot*Math.cos(ang); p.vy-=2*dot*Math.sin(ang);
+    }
+  }
+
+  if(!p.phasing){
+    for(const o of obstacles){
+      const d=dist(p,o);
+      if(d<p.r+o.r){
+        const ang=Math.atan2(p.y-o.y,p.x-o.x);
+        p.x=o.x+Math.cos(ang)*(p.r+o.r+1); p.y=o.y+Math.sin(ang)*(p.r+o.r+1);
+        const dot=p.vx*Math.cos(ang)+p.vy*Math.sin(ang);
+        if(dot<0){p.vx-=2*dot*Math.cos(ang);p.vy-=2*dot*Math.sin(ang);}
+      }
+    }
+  }
+}
+
+function checkTag(){
+  if(tagCooldown>0) return;
+  if(dist(p1,p2)<p1.r+p2.r){
+    const notIt = p1.isIt?p2:p1, wasIt = p1.isIt?p1:p2;
+    p1.isIt=!p1.isIt; p2.isIt=!p2.isIt;
+    bombTimer=10; tagFlash=0.6; tagCooldown=0.8;
+    // Teleport newly-tagged to opposite side
+    const opp = { x: CX+(CX-notIt.x)*0.85, y: CY+(CY-notIt.y)*0.85 };
+    const d2c = Math.hypot(opp.x-CX,opp.y-CY);
+    if(d2c+notIt.r>R-10){ const a=Math.atan2(opp.y-CY,opp.x-CX); opp.x=CX+Math.cos(a)*(R-notIt.r-20); opp.y=CY+Math.sin(a)*(R-notIt.r-20); }
+    notIt.x=opp.x; notIt.y=opp.y; notIt.vx=(Math.random()-0.5)*3; notIt.vy=(Math.random()-0.5)*3;
+    const ang=Math.atan2(wasIt.y-notIt.y,wasIt.x-notIt.x);
+    wasIt.vx=Math.cos(ang)*5; wasIt.vy=Math.sin(ang)*5;
+  }
+}
+
+function checkPowerups(){
+  for(let i=powerups.length-1;i>=0;i--){
+    const pu=powerups[i];
+    for(const p of [p1,p2]){
+      if(dist(p,pu)<p.r+pu.r){applyEffect(p,pu.type.id,pu.type.duration);powerups.splice(i,1);break;}
+    }
+  }
+  // Check chaos orb
+  if(chaosOrb){
+    for(const p of [p1,p2]){
+      if(dist(p,chaosOrb)<p.r+chaosOrb.r) triggerChaos();
+    }
+  }
+}
+
+function triggerExplosion(victim, scorer){
+  const parts=[];
+  for(let i=0;i<60;i++){
+    const ang=Math.random()*Math.PI*2,spd=2+Math.random()*6;
+    parts.push({x:victim.x,y:victim.y,vx:Math.cos(ang)*spd,vy:Math.sin(ang)*spd,
+      r:2+Math.random()*5,color:['#ff4400','#ff8800','#ffcc00','#fff','#ff2200'][Math.floor(Math.random()*5)],life:1});
+  }
+  explosion={x:victim.x,y:victim.y,parts}; explodeTimer=EXPLODE_DURATION;
+  victim.alive=false; scorer.score++; updateUI();
+  gameState = scorer.score>=WIN_SCORE ? 'gameover' : 'exploding';
+}
+
+// ---- ROUND / GAME RESET ----
+function startCountdown(){
+  countdownVal=3; countdownTimer=1.0; gameState='countdown';
+  powerups=[]; bombTimer=10; spawnTimer=0; tagCooldown=0;
+  clearAllEffects(p1); clearAllEffects(p2);
+  chaosActive=false;
+  if(!chaosOrb) scheduleChaosOrb();
+  updateUI();
+}
+
+function resetRound(){
+  const s1=p1.score,s2=p2.score;
+  generateObstacles();
+  initPlayers();
+  p1.score=s1; p2.score=s2; p1.isIt=true;
+  startCountdown();
+}
+
+function resetGame(){
+  generateObstacles();
+  initPlayers();
+  p1.isIt=true; powerups=[];
+  chaosOrb=null; chaosActive=false;
+  scheduleChaosOrb();
+  updateUI();
+  startCountdown();
+}
+
+// ---- DRAW ----
+function drawArena(ts){
+  // Clip to circle
+  ctx.save();
+  ctx.beginPath(); ctx.arc(CX,CY,R+4,0,Math.PI*2); ctx.clip();
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2);
+  ctx.fillStyle='#12122a'; ctx.fill();
+  ctx.restore();
+
+  // Draw portal gaps (cut-outs in the rim)
+  // Draw wall arc with portal gaps
+  ctx.save();
+  ctx.lineWidth=8;
+  for(let i=0;i<PORTALS.length;i++){
+    const po=PORTALS[i];
+    const startAng = po.angle + PORTAL_HALF_ARC;
+    const endAng   = (PORTALS[(i+1)%PORTALS.length].angle - PORTAL_HALF_ARC + 2*Math.PI);
+    // Draw the rim between portals in quadrants - just draw full rim then portal gap over it
+  }
+  // Full rim
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2);
+  ctx.strokeStyle='#4a4a8a'; ctx.lineWidth=8; ctx.stroke();
+
+  // Draw portal openings as glowing gaps
+  for(const po of PORTALS){
+    const s = po.angle - PORTAL_HALF_ARC*1.2;
+    const e = po.angle + PORTAL_HALF_ARC*1.2;
+    // Erase the gap
+    ctx.beginPath(); ctx.arc(CX,CY,R,s,e);
+    ctx.strokeStyle='#12122a'; ctx.lineWidth=10; ctx.stroke();
+    // Glow edges
+    ctx.beginPath(); ctx.arc(CX,CY,R,s,e);
+    ctx.strokeStyle=`rgba(100,180,255,${0.7+0.3*Math.sin(ts*0.004+po.angle)})`;
+    ctx.lineWidth=3; ctx.stroke();
+    // Portal icon inside gap
+    const px=CX+Math.cos(po.angle)*(R-4), py=CY+Math.sin(po.angle)*(R-4);
+    ctx.font='bold 12px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillStyle='rgba(100,200,255,0.9)';
+    ctx.fillText('⬛',px,py);
+  }
+
+  // Rim dots
+  for(let i=0;i<8;i++){
+    const a=i/8*Math.PI*2;
+    ctx.beginPath(); ctx.arc(CX+Math.cos(a)*(R-10),CY+Math.sin(a)*(R-10),3,0,Math.PI*2);
+    ctx.fillStyle='#6a6aaa'; ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawObstacles(){
+  for(const o of obstacles){
+    ctx.beginPath(); ctx.arc(o.x,o.y,o.r,0,Math.PI*2);
+    ctx.fillStyle='#2a2a5a'; ctx.strokeStyle='#5a5aaa'; ctx.lineWidth=2;
+    ctx.fill(); ctx.stroke();
+  }
+}
+
+function drawChaosOrb(ts){
+  if(!chaosOrb) return;
+  const pulse = Math.sin(ts*0.004)*0.4+0.6;
+  const glow = chaosOrb.r + 12*pulse;
+  // Outer glow rings
+  for(let ring=3;ring>=1;ring--){
+    ctx.beginPath(); ctx.arc(chaosOrb.x,chaosOrb.y,chaosOrb.r+ring*10*pulse,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,240,80,${0.15*ring*pulse})`;
+    ctx.lineWidth=3; ctx.stroke();
+  }
+  // Core
+  const grad = ctx.createRadialGradient(chaosOrb.x,chaosOrb.y,0,chaosOrb.x,chaosOrb.y,glow);
+  grad.addColorStop(0,'#fffbe0');
+  grad.addColorStop(0.4,'#ffcc00');
+  grad.addColorStop(1,'rgba(255,140,0,0)');
+  ctx.beginPath(); ctx.arc(chaosOrb.x,chaosOrb.y,glow,0,Math.PI*2);
+  ctx.fillStyle=grad; ctx.fill();
+  ctx.font='18px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.fillText('🌀',chaosOrb.x,chaosOrb.y);
+}
+
+function drawPlayer(p){
+  if(!p.alive) return;
+  ctx.save();
+  if(p.phasing) ctx.globalAlpha=0.5;
+  if(p.isIt && tagFlash>0){
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r+8+tagFlash*10,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,80,80,${tagFlash*0.5})`; ctx.fill();
+  }
+  ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+  ctx.fillStyle=p.color; ctx.fill();
+  ctx.strokeStyle='rgba(255,255,255,0.35)'; ctx.lineWidth=2; ctx.stroke();
+  if(p.phasing){ctx.strokeStyle='#9b59b6';ctx.lineWidth=3;ctx.setLineDash([5,5]);ctx.stroke();ctx.setLineDash([]);}
+  // Name label
+  ctx.font='bold 11px system-ui'; ctx.textAlign='center'; ctx.textBaseline='bottom';
+  ctx.fillStyle='rgba(255,255,255,0.85)';
+  ctx.fillText(p.name, p.x, p.y - p.r - 2);
+  // Bomb
+  if(p.isIt){
+    bombBounce+=0.05;
+    const bx=p.x, by=p.y-p.r-28+Math.sin(bombBounce)*4;
+    ctx.beginPath(); ctx.arc(bx,by,12,0,Math.PI*2);
+    ctx.fillStyle='#111'; ctx.fill(); ctx.strokeStyle='#555'; ctx.lineWidth=2; ctx.stroke();
+    ctx.font='14px serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText('💣',bx,by);
+    const frac=bombTimer/10;
+    const col=frac>0.5?'#2ecc71':frac>0.25?'#f39c12':'#e74c3c';
+    ctx.font='bold 11px sans-serif'; ctx.fillStyle=col; ctx.textBaseline='middle';
+    ctx.fillText(Math.ceil(bombTimer)+'s',bx,by-24);
+  }
+  ctx.restore();
+}
+
+function drawExplosion(dt){
+  if(!explosion) return;
+  for(const pt of explosion.parts){
+    pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.08; pt.vx*=0.97; pt.vy*=0.97; pt.life-=dt*0.7;
+    if(pt.life<=0) continue;
+    ctx.save(); ctx.globalAlpha=pt.life;
+    ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.r*pt.life,0,Math.PI*2);
+    ctx.fillStyle=pt.color; ctx.fill(); ctx.restore();
+  }
+  const progress=1-explodeTimer/EXPLODE_DURATION, waveR=progress*100;
+  if(waveR>0&&waveR<100){
+    ctx.save(); ctx.beginPath(); ctx.arc(explosion.x,explosion.y,waveR,0,Math.PI*2);
+    ctx.strokeStyle=`rgba(255,180,0,${(1-progress)*0.8})`; ctx.lineWidth=6*(1-progress)+1; ctx.stroke(); ctx.restore();
+  }
+}
+
+function drawPowerups(ts){
+  for(const pu of powerups){
+    const bob=Math.sin(ts*0.002+pu.bobOffset)*4;
+    ctx.save(); ctx.translate(pu.x,pu.y+bob); ctx.rotate(ts*0.001);
+    const s=pu.r;
+    ctx.fillStyle=pu.type.color; ctx.strokeStyle='rgba(255,255,255,0.6)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); ctx.rect(-s,-s,s*2,s*2); ctx.fill(); ctx.stroke();
+    const icons={speed:'⚡',big:'💪',phase:'👻',slow:'🐌',shrink:'🔬',reverse:'🔄'};
+    ctx.font=`${Math.round(s*1.3)}px serif`; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(icons[pu.type.id]||'?',0,1); ctx.restore();
+  }
+}
+
+function drawHUD(){
+  document.getElementById('gameStatus').textContent = p1.isIt
+    ? `💣 ${p1.name} is IT!` : `💣 ${p2.name} is IT!`;
+}
+
+function drawCountdown(){
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.6)';
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.fill();
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  const label=countdownVal>0?String(countdownVal):'GO!';
+  ctx.font=`bold ${countdownVal>0?110:90}px system-ui`;
+  ctx.fillStyle=countdownVal>0?'#fff':'#2ecc71';
+  ctx.fillText(label,CX,CY);
+  ctx.restore();
+  document.getElementById('gameStatus').textContent='Get ready...';
+}
+
+function drawPaused(){
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.65)';
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.fill();
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font='bold 52px system-ui'; ctx.fillStyle='#fff';
+  ctx.fillText('PAUSED',CX,CY-20);
+  ctx.font='18px system-ui'; ctx.fillStyle='#aaa';
+  ctx.fillText('Press Space or click Resume',CX,CY+30);
+  ctx.restore();
+  document.getElementById('gameStatus').textContent='⏸ Paused';
+}
+
+function drawRoundOver(dt){
+  roundOverTimer-=dt;
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.5)';
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.fill();
+  const winner=!p1.alive?p2:p1;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font='bold 36px system-ui'; ctx.fillStyle=winner.color;
+  ctx.fillText(`${winner.name} scores!`,CX,CY-22);
+  ctx.font='16px system-ui'; ctx.fillStyle='#ccc';
+  ctx.fillText('New round starting...',CX,CY+22);
+  ctx.restore();
+  document.getElementById('gameStatus').textContent=`${winner.name} gets the point!`;
+  if(roundOverTimer<=0) resetRound();
+}
+
+function drawGameOver(dt){
+  drawExplosion(dt);
+  ctx.save();
+  ctx.fillStyle='rgba(0,0,0,0.78)';
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,Math.PI*2); ctx.fill();
+  const winner=p1.score>=WIN_SCORE?p1:p2;
+  ctx.textAlign='center'; ctx.textBaseline='middle';
+  ctx.font='bold 44px system-ui'; ctx.fillStyle=winner.color;
+  ctx.fillText(`${winner.name} wins!`,CX,CY-44);
+  ctx.font='18px system-ui'; ctx.fillStyle='#ddd';
+  ctx.fillText(`First to ${WIN_SCORE} points`,CX,CY+2);
+  ctx.font='15px system-ui'; ctx.fillStyle='#aaa';
+  ctx.fillText('Press Space to play again',CX,CY+46);
+  ctx.restore();
+  document.getElementById('gameStatus').textContent=`🏆 ${winner.name} wins the match!`;
+  if(keys[' ']){keys[' ']=false; resetGame();}
+}
+
+// ---- MAIN LOOP ----
+function loop(ts){
+  if(gameState==='paused'||gameState==='idle') return;
+  if(!lastTime) lastTime=ts;
+  const dt=Math.min((ts-lastTime)/1000,0.05);
+  lastTime=ts;
+
+  ctx.clearRect(0,0,W,H);
+  drawArena(ts);
+  drawObstacles();
+
+  if(gameState==='countdown'){
+    drawPlayer(p1); drawPlayer(p2);
+    drawPowerups(ts);
+    countdownTimer-=dt;
+    if(countdownTimer<=0){
+      if(countdownVal>1){countdownVal--;countdownTimer=1.0;}
+      else if(countdownVal===1){countdownVal=0;countdownTimer=0.7;}
+      else{gameState='playing';spawnPowerup();spawnPowerup();}
+    }
+    drawCountdown();
+    requestAnimationFrame(loop); return;
+  }
+
+  if(gameState==='playing'){
+    bombTimer=Math.max(0,bombTimer-dt);
+    if(tagCooldown>0) tagCooldown-=dt;
+    spawnTimer+=dt; if(spawnTimer>3){spawnTimer=0;spawnPowerup();}
+    if(tagFlash>0) tagFlash-=dt*2;
+
+    // Chaos orb timer
+    if(!chaosOrb&&!chaosActive){
+      chaosOrbTimer-=dt;
+      if(chaosOrbTimer<=0) spawnChaosOrb();
+    }
+    if(chaosActive){
+      chaosDuration-=dt;
+      updateChaosObstacles();
+      if(chaosDuration<=0) chaosActive=false;
+    }
+
+    if(bombTimer<=0){
+      const victim=p1.isIt?p1:p2, scorer=p1.isIt?p2:p1;
+      triggerExplosion(victim,scorer);
+      roundOverTimer=ROUND_OVER_DURATION;
+    } else {
+      move(p1); move(p2);
+      checkTag(); checkPowerups();
+    }
+    drawChaosOrb(ts);
+    drawPowerups(ts);
+    drawPlayer(p1); drawPlayer(p2);
+    drawHUD();
+    requestAnimationFrame(loop); return;
+  }
+
+  if(gameState==='exploding'){
+    explodeTimer-=dt;
+    drawPowerups(ts); drawChaosOrb(ts);
+    drawPlayer(p1); drawPlayer(p2);
+    drawExplosion(dt);
+    if(explodeTimer<=0){explosion=null;gameState='roundover';}
+    requestAnimationFrame(loop); return;
+  }
+
+  if(gameState==='roundover'){
+    drawPlayer(p1); drawPlayer(p2);
+    drawRoundOver(dt);
+    requestAnimationFrame(loop); return;
+  }
+
+  if(gameState==='gameover'){
+    drawGameOver(dt);
+    requestAnimationFrame(loop); return;
+  }
+}
+</script>
+</body>
+</html>
+HTMLEOF
+echo "done"
+
+Output
+done

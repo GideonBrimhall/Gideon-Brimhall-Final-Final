@@ -1,0 +1,675 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gideon Brimhall | Business Management & Legal Operations</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+:root{
+    --gold:#d7a94b;
+    --navy:#041a36;
+    --navy2:#0a2c52;
+    --white:#ffffff;
+    --light:#f5f5f5;
+}
+
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    color:#222;
+    background:#fff;
+    margin: 5px;
+}
+
+.container{
+    width:90%;
+    max-width:1400px;
+    margin:auto;
+   
+}
+
+/* NAVIGATION */
+
+nav{
+    background:linear-gradient(90deg,#03101f,#072549,#03101f);
+    padding:18px 0;
+    position:sticky;
+    top:0;
+    z-index:1000;
+}
+
+.nav-inner{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-family:'Cormorant Garamond',serif;
+    font-size:2rem;
+    font-weight:700;
+    color:white;
+}
+
+.logo span{
+    color:var(--gold);
+}
+
+.nav-links{
+    display:flex;
+    gap:40px;
+    list-style:none;
+}
+
+.nav-links a{
+    text-decoration:none;
+    color:white;
+    font-size:.95rem;
+    font-weight:500;
+    letter-spacing:.5px;
+}
+
+.nav-links a:hover{
+    color:var(--gold);
+}
+
+/* HERO */
+
+.hero{
+    background:linear-gradient(90deg,#07203f,#03152b,#041a36);
+    color:white;
+    padding:0;
+    text-size-adjust: 70%;
+}
+
+.hero-grid{
+    display:grid;
+    grid-template-columns:40% 60%;
+    align-items:center;
+}
+
+.hero-image img{
+    width:100%;
+    display:block;
+    height: 50%;
+}
+
+.hero-content{
+    padding:70px;
+}
+
+.hero h1{
+    font-family:'Cormorant Garamond',serif;
+    font-size:6rem;
+    line-height:.9;
+    margin-bottom:20px;
+}
+
+.hero h1 span{
+    color:var(--gold);
+    display:block;   
+}
+
+.hero-subtitle{
+    text-transform:uppercase;
+    letter-spacing:2px;
+    font-size:1.15rem;
+    margin-bottom:25px;
+}
+
+.gold-line{
+    width:90px;
+    height:3px;
+    background:var(--gold);
+    margin:25px 0;
+}
+
+.hero p{
+    font-size:1.1rem;
+    line-height:1.9;
+    max-width:800px;
+}
+
+.hero-buttons{
+    margin-top:40px;
+    display:flex;
+    gap:20px;
+}
+
+.btn{
+    padding:16px 34px;
+    border-radius:4px;
+    text-decoration:none;
+    font-weight:600;
+    transition:.3s;
+}
+
+.btn-gold{
+    background:var(--gold);
+    color:#111;
+}
+
+.btn-outline{
+    border:2px solid var(--gold);
+    color:white;
+}
+
+.btn:hover{
+    transform:translateY(-3px);
+}
+
+/* STATS */
+
+.stats{
+    background:linear-gradient(90deg,#031a37,#07294d,#031a37);
+    margin-top:-220px;
+    border:1px solid var(--gold);
+    border-radius:12px;
+    position:relative;
+    z-index:10;
+}
+
+.stats-grid{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    position: relative;
+    margin-top: 80;
+}
+
+.stat{
+    text-align:center;
+    padding:35px 20px;
+    color:white;
+    border-right:1px solid rgba(215,169,75,.5);
+    margin-top: -80;
+}
+
+.stat:last-child{
+    border-right:none;
+}
+
+.stat h2{
+    color:var(--gold);
+    font-size:4rem;
+    font-family:'Cormorant Garamond',serif;
+}
+
+.stat p{
+    margin-top:8px;
+    font-size:1.05rem;
+}
+
+/* ABOUT */
+
+.about{
+    padding:40px 0;
+    background:#fafafa;
+}
+
+.section-title{
+    font-family:'Cormorant Garamond',serif;
+    font-size:3rem;
+    color:#14233a;
+    margin-bottom:20px;
+}
+
+.about-grid{
+    display:grid;
+    grid-template-columns:25% 75%;
+    gap:50px;
+}
+
+.about-text{
+    font-size:1.1rem;
+    line-height:2;
+}
+
+/* EXPERIENCE */
+
+.experience{
+    background:linear-gradient(90deg,#041a36,#07274c,#041a36);
+    color:white;
+    padding:80px 0;
+}
+
+.experience h2{
+    text-align:center;
+    font-family:'Cormorant Garamond',serif;
+    font-size:3.5rem;
+    margin-bottom:60px;
+}
+
+.timeline{
+    display:flex;
+    flex-direction:column;
+    gap:40px;
+}
+
+.job{
+    display:grid;
+    grid-template-columns:18% 25% 57%;
+    gap:25px;
+    padding-bottom:25px;
+    border-bottom:1px solid rgba(255,255,255,.15);
+}
+
+.job-date{
+    color:var(--gold);
+    font-weight:600;
+}
+
+.job-company{
+    color:var(--gold);
+    font-family:'Cormorant Garamond',serif;
+    font-size:2rem;
+}
+
+.job-title{
+    font-style:italic;
+    margin-top:5px;
+}
+
+.job ul{
+    padding-left:20px;
+    line-height:1.8;
+}
+
+/* CARDS */
+
+.cards{
+    padding:80px 0;
+    background:white;
+}
+
+.cards-grid{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:40px;
+}
+
+.card{
+    border-top:4px solid var(--gold);
+    padding:30px;
+    background:#fff;
+    box-shadow:0 5px 25px rgba(0,0,0,.08);
+}
+
+.card h3{
+    font-family:'Cormorant Garamond',serif;
+    font-size:2rem;
+    margin-bottom:20px;
+    color:#14233a;
+}
+
+.card ul{
+    padding-left:20px;
+    line-height:2;
+}
+
+/* CONTACT */
+
+.contact{
+    background:linear-gradient(90deg,#031a37,#07294d,#031a37);
+    color:white;
+    padding:60px 0;
+}
+
+.contact-grid{
+    display:grid;
+    grid-template-columns:50% 50%;
+    gap:40px;
+}
+
+.contact h2{
+    font-family:'Cormorant Garamond',serif;
+    font-size:3rem;
+    margin-bottom:15px;
+}
+
+.contact-info{
+    line-height:2.2;
+    font-size:1.05rem;
+}
+
+footer{
+    text-align:center;
+    background:#02101f;
+    color:#aaa;
+    padding:20px;
+}
+
+@media(max-width:1100px){
+
+.hero-grid{
+    grid-template-columns:1fr;
+}
+
+.hero-content{
+    padding:50px 30px;
+}
+
+.hero h1{
+    font-size:4rem;
+}
+
+.stats-grid{
+    grid-template-columns:repeat(2,1fr);
+}
+
+.about-grid{
+    grid-template-columns:1fr;
+}
+
+.job{
+    grid-template-columns:1fr;
+}
+
+.cards-grid{
+    grid-template-columns:1fr;
+}
+
+.contact-grid{
+    grid-template-columns:1fr;
+}
+}
+</style>
+</head>
+
+<body>
+
+<nav>
+    <div class="container nav-inner">
+        <div class="logo">
+            GIDEON <span>BRIMHALL</span>
+        </div>
+
+        <ul class="nav-links">
+            <li><a href="#about">ABOUT</a></li>
+            <li><a href="#experience">EXPERIENCE</a></li>
+            <li><a href="#legal">LEGAL EXPERIENCE</a></li>
+            <li><a href="#education">EDUCATION</a></li>
+            <li><a href="#skills">SKILLS</a></li>
+            <li><a href="#contact">CONTACT</a></li>
+        </ul>
+    </div>
+</nav>
+
+<section class="hero">
+
+    <div class="hero-grid">
+
+        <div class="hero-image">
+            <!-- Replace with your edited headshot -->
+            <img src="aiheadshot.png" alt="Gideon Brimhall">
+        </div>
+
+        <div class="hero-content">
+
+            <h1>
+                GIDEON
+                <span>BRIMHALL</span>
+            </h1>
+
+            <div class="hero-subtitle">
+                BUSINESS MANAGEMENT STUDENT • FUTURE JD/MBA • LEGAL OPERATIONS • INTERNATIONAL AFFAIRS
+            </div>
+
+            <div class="gold-line"></div>
+
+            <p>
+                High-achieving Business Management student with experience spanning legal services,
+                immigration administration, contract management, policy communications, and entrepreneurship.
+                Proven ability to lead teams, manage six-figure budgets, coordinate international operations,
+                and deliver results in fast-paced, high-responsibility environments.
+            </p>
+
+            <div class="hero-buttons">
+                <a href="Resume.docx" class="btn btn-gold">DOWNLOAD RESUME</a>
+                <a href="https://linkedin.com" class="btn btn-outline">VIEW LINKEDIN</a>
+            </div>
+
+        </div>
+
+    </div>
+
+    <div class="container">
+        <div class="stats">
+            <div class="stats-grid">
+
+                <div class="stat">
+                    <h2>$750K</h2>
+                    <p>Annual Budget Managed</p>
+                </div>
+
+                <div class="stat">
+                    <h2>75+</h2>
+                    <p>Contracts Administered</p>
+                </div>
+
+                <div class="stat">
+                    <h2>90+</h2>
+                    <p>Immigration & Travel Cases Coordinated</p>
+                </div>
+
+                <div class="stat">
+                    <h2>4.0</h2>
+                    <p>College GPA</p>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</section>
+
+<section class="about" id="about">
+    <div class="container">
+        <div class="about-grid">
+
+            <div>
+                <br><br> 
+                <h2 class="section-title">ABOUT ME</h2>
+            </div>
+
+            <div class="about-text">
+                I am pursuing a career at the intersection of business, law,
+                public policy, and international affairs. My background includes
+                executive administration, financial management, immigration coordination,
+                legal support, policy journalism, and entrepreneurship. Through leadership
+                roles in both domestic and international environments, I have developed
+                strong analytical, organizational, and communication skills that enable
+                me to thrive in complex professional settings.
+            </div>
+
+        </div>
+    </div>
+</section>
+
+<section class="experience" id="experience">
+
+    <div class="container">
+
+        <h2>PROFESSIONAL EXPERIENCE</h2>
+
+        <div class="timeline">
+
+            <div class="job">
+                <div class="job-date">
+                    FEB 2026 – PRESENT<br>
+                    Provo, Utah
+                </div>
+
+                <div>
+                    <div class="job-company">DESERET NEWS</div>
+                    <div class="job-title">Assistant Editor & Social Media Intern</div>
+                </div>
+
+                <div>
+                    <ul>
+                        <li>Produce a daily news briefing by curating and summarizing top stories.</li>
+                        <li>Enhance newsletter engagement through strategic content additions.</li>
+                        <li>Leverage editorial judgment to prioritize timely stories.</li>
+                        <li>Support digital audience growth through social media content.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-date">
+                    MAR 2024 – NOV 2024<br>
+                    Cochabamba, Bolivia
+                </div>
+
+                <div>
+                    <div class="job-company">THE CHURCH OF JESUS CHRIST OF LATTER-DAY SAINTS</div>
+                    <div class="job-title">Financial & Executive Secretary</div>
+                </div>
+
+                <div>
+                    <ul>
+                        <li>Directed $750K annual budget.</li>
+                        <li>Negotiated and managed 75+ real estate contracts.</li>
+                        <li>Managed immigration and travel documentation for 90+ missionaries.</li>
+                        <li>Authored Spanish-language operational handbooks.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- ADDED EXPERIENCE BELOW -->
+
+            <div class="job">
+                <div class="job-date">
+                    SEPT 2022 – MAY 2023<br>
+                    Snowflake, Arizona
+                </div>
+
+                <div>
+                    <div class="job-company">VENTURE UPWARD LLC</div>
+                    <div class="job-title">Youth Activities Director</div>
+                </div>
+
+                <div>
+                    <ul>
+                        <li>Planned and facilitated educational and recreational programs for youth ages 11-15.</li>
+                        <li>Provided direct instruction and mentorship to 10+ students over one academic year.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="job">
+                <div class="job-date">
+                    MAY 2022 – MAY 2023<br>
+                    Snowflake, Arizona
+                </div>
+
+                <div>
+                    <div class="job-company">DEEP CLEAN PRESSURE WASHING</div>
+                    <div class="job-title">Owner and Operator</div>
+                </div>
+
+                <div>
+                    <ul>
+                        <li>Built and managed small business providing residential and commercial pressure washing services.</li>
+                        <li>Handled client relations, scheduling, invoicing, and marketing to grow customer base.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="cards">
+
+    <div class="container">
+
+        <div class="cards-grid">
+
+            <div class="card" id="legal">
+                <h3>Legal & Immigration Experience</h3>
+                <ul>
+                    <li>No More A Stranger Foundation – Legal Intern</li>
+                    <li>International Center for Law and Religious Studies</li>
+                    <li>Spanish Interpreter</li>
+                    <li>Immigration coordination experience</li>
+                </ul>
+            </div>
+
+            <div class="card" id="education">
+                <h3>Education</h3>
+                <ul>
+                    <li>Brigham Young University</li>
+                    <li>B.S. Business Management</li>
+                    <li>GPA: 4.0</li>
+                    <li>Prospective JD/MBA Student</li>
+                </ul>
+            </div>
+
+            <div class="card" id="skills">
+                <h3>Skills & Expertise</h3>
+                <ul>
+                    <li>Fluent in Spanish</li>
+                    <li>Microsoft Office Suite</li>
+                    <li>Contract Negotiation</li>
+                    <li>Financial Management</li>
+                    <li>Immigration Processes</li>
+                    <li>Legal Research</li>
+                    <li>Leadership & Team Development</li>
+                    <li>Strategic Planning</li>
+                </ul>
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="contact" id="contact">
+
+    <div class="container">
+
+        <div class="contact-grid">
+
+            <div>
+                <h2>LET'S CONNECT</h2>
+                <p>
+                    I am always open to discussing opportunities in law,
+                    business strategy, consulting, immigration services,
+                    public policy, and international affairs.
+                </p>
+            </div>
+
+            <div class="contact-info">
+                📞 (928) 243-8300<br>
+                ✉️ gideonbrimhall@gmail.com<br>
+                🔗 linkedin.com/in/gideon-brimhall<br>
+                📍 Provo, Utah
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<footer>
+    © 2026 Gideon Brimhall. All Rights Reserved.
+</footer>
+
+</body>
+</html>
